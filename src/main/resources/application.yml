@@ -1,0 +1,13 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create
+    open-in-view: false
+  datasource:
+    url: jdbc:postgresql://localhost:5432/kotlin
+    driver: org.postgresql.Driver
+    username: postgres
+    password: postgres2
+
+server:
+  port: 8000
