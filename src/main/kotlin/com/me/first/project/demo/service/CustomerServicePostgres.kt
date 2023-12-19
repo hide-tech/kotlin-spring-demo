@@ -5,6 +5,9 @@ import com.me.first.project.demo.mapper.CustomerMapper
 import com.me.first.project.demo.repo.AddressRepo
 import com.me.first.project.demo.repo.CustomerRepo
 import jakarta.transaction.Transactional
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -51,9 +54,11 @@ class CustomerServicePostgres : CustomerService {
         addressRepo.deleteAll(currentCustomer.addresses)
         var newCustomer = customerMapper.from(customerDetails)
         newCustomer.id = customerId
-        addressRepo.saveAll(newCustomer.addresses)
-        newCustomer = customerRepo.save(newCustomer)
-        return customerMapper.to(newCustomer)
+        return runBlocking {
+            launch { addressRepo.saveAll(newCustomer.addresses) }
+            val deferred = async { customerRepo.save(newCustomer) }
+            return@runBlocking customerMapper.to(deferred.await())
+        }
     }
 
     @Transactional
