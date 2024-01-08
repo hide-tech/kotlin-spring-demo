@@ -43,21 +43,22 @@ class CustomerServicePostgres : CustomerService {
             })
     }
 
+
     @Transactional
     override fun updateCustomer(
         customerId: Long,
         customerDetails: CustomerDetails
     ): CustomerDetails {
-        var currentCustomer = customerRepo.findById(customerId).orElseThrow {
+        val currentCustomer = customerRepo.findById(customerId).orElseThrow {
             throw IllegalArgumentException("Customer with id $customerId doesn't exist")
         }
-        addressRepo.deleteAll(currentCustomer.addresses)
-        var newCustomer = customerMapper.from(customerDetails)
-        newCustomer.id = customerId
         return runBlocking {
+            launch { addressRepo.deleteAll(currentCustomer.addresses) }
+            val newCustomer = customerMapper.from(customerDetails)
+            newCustomer.id = customerId
             launch { addressRepo.saveAll(newCustomer.addresses) }
-            val deferred = async { customerRepo.save(newCustomer) }
-            return@runBlocking customerMapper.to(deferred.await())
+            val defer = async { customerRepo.save(newCustomer) }
+            return@runBlocking customerMapper.to(defer.await())
         }
     }
 

@@ -8,6 +8,10 @@ spring:
     driver: org.postgresql.Driver
     username: postgres
     password: postgres2
+  cloud:
+    loadbalancer:
+      ribbon:
+        enable: false
 
 server:
   port: 8000
